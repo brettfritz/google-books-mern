@@ -1,57 +1,104 @@
-// route to get logged in user's info (needs the token)
-export const getMe = (token) => {
-  return fetch('/api/users/me', {
-    headers: {
-      'Content-Type': 'application/json',
-      authorization: `Bearer ${token}`,
-    },
-  });
+// src/utils/API.js
+
+import { useQuery, useMutation } from '@apollo/client';
+import { GET_ME } from './queries';
+import { CREATE_USER, LOGIN_USER, SAVE_BOOK, DELETE_BOOK } from './mutations';
+import client from './ApolloClient';
+
+// Function to get user info
+export const getMe = async (token) => {
+  try {
+    const { data } = await client.query({
+      query: GET_ME,
+      context: {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      },
+    });
+    return data;
+  } catch (err) {
+    console.error(err);
+    throw new Error('Failed to fetch user data');
+  }
 };
 
-export const createUser = (userData) => {
-  return fetch('/api/users', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(userData),
-  });
+// Function to create a new user
+export const createUser = async (userData) => {
+  try {
+    const { data } = await client.mutate({
+      mutation: CREATE_USER,
+      variables: { input: userData },
+    });
+    return data;
+  } catch (err) {
+    console.error(err);
+    throw new Error('Failed to create user');
+  }
 };
 
-export const loginUser = (userData) => {
-  return fetch('/api/users/login', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(userData),
-  });
+// Function to log in a user
+export const loginUser = async (userData) => {
+  try {
+    const { data } = await client.mutate({
+      mutation: LOGIN_USER,
+      variables: { input: userData },
+    });
+    return data;
+  } catch (err) {
+    console.error(err);
+    throw new Error('Failed to log in');
+  }
 };
 
-// save book data for a logged in user
-export const saveBook = (bookData, token) => {
-  return fetch('/api/users', {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(bookData),
-  });
+// Function to save a book
+export const saveBook = async (bookData, token) => {
+  try {
+    const { data } = await client.mutate({
+      mutation: SAVE_BOOK,
+      variables: { input: bookData },
+      context: {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      },
+    });
+    return data;
+  } catch (err) {
+    console.error(err);
+    throw new Error('Failed to save book');
+  }
 };
 
-// remove saved book data for a logged in user
-export const deleteBook = (bookId, token) => {
-  return fetch(`/api/users/books/${bookId}`, {
-    method: 'DELETE',
-    headers: {
-      authorization: `Bearer ${token}`,
-    },
-  });
+// Function to delete a book
+export const deleteBook = async (bookId, token) => {
+  try {
+    const { data } = await client.mutate({
+      mutation: DELETE_BOOK,
+      variables: { bookId },
+      context: {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      },
+    });
+    return data;
+  } catch (err) {
+    console.error(err);
+    throw new Error('Failed to delete book');
+  }
 };
 
-// make a search to google books api
-// https://www.googleapis.com/books/v1/volumes?q=harry+potter
-export const searchGoogleBooks = (query) => {
-  return fetch(`https://www.googleapis.com/books/v1/volumes?q=${query}`);
+// Function to search Google Books
+export const searchGoogleBooks = async (query) => {
+  try {
+    const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${query}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch books from Google');
+    }
+    return response.json();
+  } catch (err) {
+    console.error(err);
+    throw new Error('Failed to search books');
+  }
 };

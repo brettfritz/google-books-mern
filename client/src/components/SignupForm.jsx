@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Form, Button, Alert } from 'react-bootstrap';
-
-import { createUser } from '../utils/API';
+import { useMutation } from '@apollo/client';
+import { CREATE_USER } from '../utils/queries'; // Import your GraphQL mutation
 import Auth from '../utils/auth';
 
 const SignupForm = () => {
@@ -11,6 +11,17 @@ const SignupForm = () => {
   const [validated] = useState(false);
   // set state for alert
   const [showAlert, setShowAlert] = useState(false);
+
+  // Define the mutation and handle errors
+  const [createUser, { error }] = useMutation(CREATE_USER, {
+    onCompleted: (data) => {
+      const { token } = data.createUser;
+      Auth.login(token);
+    },
+    onError: () => {
+      setShowAlert(true);
+    }
+  });
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -28,15 +39,8 @@ const SignupForm = () => {
     }
 
     try {
-      const response = await createUser(userFormData);
-
-      if (!response.ok) {
-        throw new Error('something went wrong!');
-      }
-
-      const { token, user } = await response.json();
-      console.log(user);
-      Auth.login(token);
+      // Call the createUser mutation with form data
+      await createUser({ variables: { ...userFormData } });
     } catch (err) {
       console.error(err);
       setShowAlert(true);
