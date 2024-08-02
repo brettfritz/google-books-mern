@@ -1,6 +1,6 @@
-const { gql } = require('apollo-server-express');
-const userResolvers = require('./user-resolvers');
-const bookResolvers = require('./book-resolvers');
+const { gql } = require('@apollo/server');
+const userResolvers = require('./resolvers');
+const bookResolvers = require('./resolvers');
 
 // Define your type definitions
 const typeDefs = gql`
